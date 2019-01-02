@@ -21,8 +21,6 @@ root.geometry("623x500+100+100")
 scrollbar_in=Scrollbar(root)
 scrollbar_out=Scrollbar(root)
 
-checkimg = ImageTk.PhotoImage(Image.open(r"C:\Users\User\Desktop\excels\check-icon-3.png")) #체크 이미지
-uncheckimg = ImageTk.PhotoImage(Image.open(r"C:\Users\User\Desktop\excels\check-icon-2.png")) #체크 이미지
 CheckVar1=IntVar()
 CheckVar2=IntVar()
 state_text = StringVar()
@@ -192,7 +190,7 @@ scrollbar_out.place(x=505, y=295, height=175)
 convert_button = Button(text="변환하기", bg="#FF9966", fg="black", command=convertxls)
 convert_button.place(x=530, y=180, width=75, height=180)
 
-root.title("일용 노무비")
-root.iconbitmap(r"C:\Users\User\Desktop\123.ico")
+
+#root.iconbitmap(r"C:\Users\User\Desktop\123.ico")
 root.resizable(False, False)
 root.mainloop()
