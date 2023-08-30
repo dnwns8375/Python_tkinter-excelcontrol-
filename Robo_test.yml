@@ -1,0 +1,58 @@
+name: Apptest.ai Test - Android
+on:
+  push:
+    branches:
+      - main
+jobs:
+  api-test:
+    name: 'Apptest.ai API TEST'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        device: ["SAMSUNG GALAXY_A32_LG / ANDROID 11"]
+        os_type: ['ANDROID']
+        scn_id:
+          - '606'
+          - '607'
+          - '608'
+          - '609'
+        scn_id: ['606', '607', '608', '609']
+
+
+    steps:
+      - name: '테스트 실행 Apptest.ai POST'
+        run: |-
+          curl -u ${{ secrets.APPTEST_USER }}:${{ secrets.APPTEST_KEY }} -X POST https://apptest.uplus.co.kr/aiconn/api/openapi/v1/custom_test \
+               -H "Content-Type:multipart/form-data" \
+               -F 'data={"pid":2071, "app_name":"Stego_서빙로봇", "source_type":"app_id", "os_type":"${{ matrix.os_type }}", "scn_id":${{ matrix.scn_id }}, "ci_type":"direct", "device": ["${{ matrix.device }}"]}' > post_result.txt
+          echo "`cat post_result.txt`"
+          echo "TID=`cat post_result.txt | jq '.data.tid'`"
+          echo "TID=`cat post_result.txt | jq '.data.tid'`" >> $GITHUB_ENV
+      - name: 테스트 진행 상태 조회
+        run: |
+          echo "https://apptest.uplus.co.kr/aiconn/api/openapi/v2/test/${TID}/status"
+          curl -u ${{ secrets.APPTEST_USER }}:${{ secrets.APPTEST_KEY }} https://apptest.uplus.co.kr/aiconn/api/openapi/v2/test/${TID}/status  > get_result.txt
+          cat get_result.txt
+          echo "`cat get_result.txt`"
+          STATUS=`cat get_result.txt | jq '.data.status' | sed 's/\"//g'`
+          echo "STATUS=${STATUS}"
+          while [[ ${STATUS} == "RUNNING" || ${STATUS} == "PENDING" || ${STATUS} == "INITIALIZING" ]]
+          do
+            echo "STATUS=${STATUS}"
+            sleep 30
+            curl -u ${{ secrets.APPTEST_USER }}:${{ secrets.APPTEST_KEY }} https://apptest.uplus.co.kr/aiconn/api/openapi/v2/test/${TID}/status  > get_result.txt
+            STATUS=`cat get_result.txt | jq '.data.status' | sed 's/\"//g'`
+          done
+          echo "STATUS=${STATUS}"
+          echo "STATUS=${STATUS}" >> $GITHUB_ENV
+      - name: 테스트 결과 출력
+        run: |
+          echo "| 구분                 | 테스트 결과                                              |" >> $GITHUB_STEP_SUMMARY
+          echo "| -------------------- | -------------------------------------------------------- |" >> $GITHUB_STEP_SUMMARY
+          echo "|DEVICE               | ${{ matrix.device }} |" >> $GITHUB_STEP_SUMMARY
+          echo "|SCN ID               | ${{ matrix.scn_id }} |" >> $GITHUB_STEP_SUMMARY
+          echo "|TID                  | ${TID} |" >> $GITHUB_STEP_SUMMARY
+          echo "|테스트 최종 결과     | ${STATUS} |" >> $GITHUB_STEP_SUMMARY
+          echo "|테스트 결과 접속 URL | https://apptest.uplus.co.kr/results/summaryApp/88/${TID} |" >> $GITHUB_STEP_SUMMARY
+
